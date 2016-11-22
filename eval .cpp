@@ -117,7 +117,6 @@ bool eval::is_background(){
  */
 void eval::initialize_vars(int argc, const char *argv[]){
   
-  total_args = argc - 1;
   bool cont_loop = true;
   int array_pos = 0;
 
@@ -134,6 +133,7 @@ void eval::initialize_vars(int argc, const char *argv[]){
       total_pipes++;
       arg_v[array_pos] = argv[i]; //update array
       array_pos++;
+      total_args++;
     } //if
 
     for(int w = 0; w < 5; w++){ //search for symbols
@@ -141,8 +141,10 @@ void eval::initialize_vars(int argc, const char *argv[]){
 	string file(argv[i+1]);
 	arg_v[array_pos] = argv[i]; //update array
 	array_pos++;
+	total_args++;
 	arg_v[array_pos] = file; //update array
 	array_pos++;
+	total_args++;
 
 	switch(w){
 	case 0: std_in = file;      break;  
@@ -156,6 +158,7 @@ void eval::initialize_vars(int argc, const char *argv[]){
     } //for
     for(int j = 0; j < 4; j++){
       if(strcmp(argv[i], procs[j]) == 0){ //if argv[i] = cat, grep, less, echo
+	total_args++;
 	total_procs++;
 	arg_v[array_pos] = argv[i]; //update array
 	array_pos++;
@@ -169,7 +172,6 @@ void eval::initialize_vars(int argc, const char *argv[]){
 	  
 	  if(((strcmp(argv[x], "&") == 0)) && (x == argc - 1)){ //if & is the last char of user input
 	    background = true;
-	    total_args --;
 	    return;
 	  } //if
 
@@ -204,11 +206,13 @@ void eval::initialize_vars(int argc, const char *argv[]){
 	    string quote_element(quote_content);
 	    arg_v[array_pos] = quote_element; //update array
 	    array_pos++;
+	    total_args++;
 	    x = i; //update x to avoid repetition of words
 	  } //if
 	  else{
 	    arg_v[array_pos] = argv[x]; //update array
 	    array_pos++;
+	    total_args++;
 	  } //else
 	} //for
       } //if
