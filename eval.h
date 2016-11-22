@@ -22,6 +22,7 @@ class eval{
   string get_std_in(); //return standard in file
   string get_std_out(); //return standard out file
   string get_std_err(); //return standard error file
+  bool eval::is_background(); //returns true if & is included at end of user input
   void initialize_vars(int argc, const char *argv[]); //initializes all variables
 };
 
