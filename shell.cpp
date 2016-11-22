@@ -41,13 +41,13 @@ int main(int argc, const char *argv[]){
   while(!dead){
     eval *ev = new eval(get_input_info()); //get user input information
     string *arg_v = ev -> get_argv();
-
+    /*
     char ** args = new char * [ev -> get_argc()];
     for(int i = 0; i < ev -> get_argc(); i++){
       args[i] = strdup(arg_v[i].c_str());
     } //for
     args[ev->get_argc()] = nullptr;
-
+    */
     if(ev -> get_procs() == 0){ //check for other commands other than processes
       if(arg_v[0] == "exit"){ //exit
 	if(ev -> get_argc() == 2){ //exit (int)
@@ -82,14 +82,14 @@ int main(int argc, const char *argv[]){
       //error
     }//if
 
-    for(int numProc = 0; numProc < ev -> get_argc(); numProc++){
+    for(int numProc = 0; numProc <= ev -> get_pipes(); numProc++){
       if((pid = fork()) < 0) { // error 
 	perror("FORK ERROR");
       } //if
       else if (pid == 0) { //child
-	if(ev -> get_argc() == 0){
+	if(ev -> get_pipes() == 0){
 	  //is one process
-	} else if(numProc > 0 && numProc != (ev -> get_argc()-1)) {
+	} else if(numProc < ev -> get_pipes()) {
 	  if(dup2(pipefd1[1], STDOUT_FILENO) == -1){
 	    //error
 	  }//if
@@ -101,10 +101,16 @@ int main(int argc, const char *argv[]){
 	}//if
 	close_pipe(pipefd1);
 	close_pipe(pipefd2);
+	string *arg_v1 = ev -> get_process(numProc);
+	char ** args = new char * [ev -> get_process_args(numProc)];
+	for(int i = 0; i < ev -> get_process_args(numProc); i++){
+	  args[i] = strdup(arg_v1[i].c_str());
+	} //for
+	args[ev->get_process_args(numProc)] = nullptr;
 	execvp(args[0], args);
       } //else if (child)
       else{ //parent
-	if(numProc != ev -> get_argc()-1) continue;
+	if(numProc != ev -> get_pipes()) continue;
 	close_pipe(pipefd1);
 	close_pipe(pipefd2);
 	if(false){//ev -> is_background());
