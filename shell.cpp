@@ -176,15 +176,23 @@ eval get_input_info(){
  * directory each time it is called
  */
 string get_prompt(){
-
+  
   const char *path;
   string the_prompt = "1730sh: ";
 
   path = get_current_dir_name();
-  the_prompt += path;
+  string the_path(path);
+
+  if(the_path.find(getenv("HOME")) != string::npos){ //if the path contains the HOME dir
+    the_path.erase(0, strlen(getenv("HOME"))); //erase HOME dir from path
+    the_prompt += "~";
+  } //if
+
+  the_prompt += the_path;
   the_prompt += "$ ";
 
   return the_prompt;
+  
 } //get_prompt
 
 void close_pipe(int pipefd [2]) {
