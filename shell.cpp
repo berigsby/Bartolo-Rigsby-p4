@@ -41,9 +41,11 @@ int main(int argc, const char *argv[]){
     eval *ev = new eval(get_input_info()); //get user input information
     string *arg_v = ev -> get_argv();
 
-    //    for(int i = 0; i < ev -> get_argc(); i++){
-    //  cout << arg_v[i] << "\n";
-    //} //for
+    char ** args = new char * [ev -> get_argc()];
+    for(int i = 0; i < ev -> get_argc(); i++){
+      args[i] = strdup(arg_v[i].c_str());
+    } //for
+    args[ev->get_argc()] = nullptr;
 
     if(ev -> get_procs() == 0){ //check for other commands other than processes
       if(arg_v[0] == "exit"){ //exit
@@ -78,7 +80,7 @@ int main(int argc, const char *argv[]){
       //args[0] = strdup("cat");
       //args[1] = strdup("eval.cpp");
       //args[2] = nullptr;
-      execvp(arg_v[0], arg_v);
+      execvp(args[0], args);
     } //else if (child)
     else{ //parent
       if(false){//ev -> is_background());
