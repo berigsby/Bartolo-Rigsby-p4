@@ -243,7 +243,7 @@ string *eval::get_process(int element){
   } //for
 
   return the_proc;
-} //set_procs
+} //get_process
 
 /* returns the total arguments
  * of a specific process 
