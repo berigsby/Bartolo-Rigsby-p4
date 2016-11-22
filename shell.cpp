@@ -151,7 +151,6 @@ eval get_input_info(){
 
   cout << prompt;
   getline(cin, input); //store string in input
-  cout << "\n";
   
   string input_args[100];
   const char *args[100];
