@@ -219,3 +219,52 @@ void eval::initialize_vars(int argc, const char *argv[]){
     } //for
   } //for
 } //initialize_vars
+
+/* returns a specific process
+ * depending on the element
+ * passed
+ */
+string *eval::get_process(int element){
+
+  int iteration = 0;
+  int x = 0;
+
+  for(int i = 0; i < get_argc(); i++){
+    if(arg_v[i] == "|"){
+      iteration++;
+    } //if
+    
+    if(iteration == element){
+      if(arg_v[i] != "|"){
+	the_proc[x] = arg_v[i];
+	x++;
+      } //if
+    } //if
+  } //for
+
+  return the_proc;
+} //set_procs
+
+/* returns the total arguments
+ * of a specific process 
+ * depending on element passed
+ */
+int eval::get_process_args(int element){
+
+  int iteration = 0;
+  int x = 0;
+
+  for(int i = 0; i < get_argc(); i++){
+    if(arg_v[i] == "|"){
+      iteration++;
+    } //if
+    
+    if(iteration == element){
+      if(arg_v[i] != "|"){
+	x++;
+      } //if
+    } //if
+  } //for
+
+  return x;
+} //get_process_args
