@@ -24,6 +24,8 @@ class eval{
   string get_std_err(); //return standard error file
   bool is_background(); //returns true if & is included at end of user input
   void initialize_vars(int argc, const char *argv[]); //initializes all variables
+  string *get_process(int element); //return specific process
+  int get_process_args(int element); //return args for a specific process
 };
 
 #endif
