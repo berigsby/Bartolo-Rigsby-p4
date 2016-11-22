@@ -75,10 +75,10 @@ int main(int argc, const char *argv[]){
 
     int pipefd1[2];
     int pipefd2[2];
-    if(pipe(pipefd) == -1){
+    if(pipe(pipefd1) == -1){
       //error
     }//if
-    if(pipe(pipefd) == -1){
+    if(pipe(pipefd2) == -1){
       //error
     }//if
 
@@ -89,12 +89,12 @@ int main(int argc, const char *argv[]){
       else if (pid == 0) { //child
 	if(ev -> get_argc() == 0){
 	  //is one process
-	} else if(numProc+1 < ev {
+	} else if(numProc > 0 && numProc != (ev -> get_argc()-1)) {
 	  if(dup2(pipefd1[1], STDOUT_FILENO) == -1){
 	    //error
 	  }//if
 	}//else
-	if(numProc+1 < ev-> get_argc()){
+	if(numProc != 0){
 	  if(dup2(pipefd1[0], STDIN_FILENO) == -1){
 	    //error
 	  }//if
@@ -104,7 +104,7 @@ int main(int argc, const char *argv[]){
 	execvp(args[0], args);
       } //else if (child)
       else{ //parent
-	if(numProc != get_argc()-1) continue;
+	if(numProc != ev -> get_argc()-1) continue;
 	close_pipe(pipefd1);
 	close_pipe(pipefd2);
 	if(false){//ev -> is_background());
