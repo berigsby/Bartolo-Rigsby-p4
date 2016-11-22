@@ -18,7 +18,10 @@ const char *symbols[] = {"<", ">>", ">", "e>", "e>>"};
 int total_pipes = 0;
 int total_procs = 0;
 int total_args = 0;
+int process_args = 0;
+
 string *arg_v; //the array of inputs which will be returned to shell
+string *the_proc;
 
 string std_in;
 string std_out;
@@ -32,6 +35,7 @@ bool background = false;
 eval::eval(int the_argc, const char *the_argv[]){
 
   arg_v = new string[the_argc];
+  the_proc = new string[100];
   initialize_vars(the_argc, the_argv);
     
 } //eval
@@ -44,11 +48,13 @@ eval::~eval(){
   total_pipes = 0;
   total_procs = 0;
   total_args = 0;
+  process_args = 0;	
   std_in = "";
   std_out = "";
   std_err = "";
   background = false;
   delete [] arg_v;
+  delete [] the_proc;
 } //eval
 
 /* returns the total number
