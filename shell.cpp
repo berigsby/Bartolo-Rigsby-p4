@@ -21,6 +21,7 @@
  */
 using namespace std;
 
+void close_pipe(int pipefd[2]);
 eval get_input_info();
 string get_prompt();
 
@@ -71,36 +72,60 @@ int main(int argc, const char *argv[]){
 	//TODO implement help information
       } //else if 
     } //if
-      
-    if((pid = fork()) < 0) { // error 
-      perror("FORK ERROR");
-    } //if
-    else if (pid == 0) { //child
-      //char ** args = new char * [3];
-      //args[0] = strdup("cat");
-      //args[1] = strdup("eval.cpp");
-      //args[2] = nullptr;
-      execvp(args[0], args);
-    } //else if (child)
-    else{ //parent
-      if(false){//ev -> is_background());
-      } else{
-	waitpid(pid,nullptr,0);
-	/*
-	if ((wpid = waitpid(pid, &pstatus, WNOHANG)) == -1) {
-	  perror("waitpid");
-	} //if
-	else if (WIFEXITED(pstatus)){ //if child process exits
-	  //cout << "exited\n";
-	  //dead = true;
-	} //else if child exited
-	else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
-	  //cout << "signaled\n";
-	  //dead = true;
-	} //else if child signaled
-	*/
-      }//else isback
-    }//else
+
+    int pipefd1[2];
+    int pipefd2[2];
+    if(pipe(pipefd) == -1){
+      //error
+    }//if
+    if(pipe(pipefd) == -1){
+      //error
+    }//if
+
+    for(int numProc = 0; numProc < ev -> get_argc(); numProc++){
+      if((pid = fork()) < 0) { // error 
+	perror("FORK ERROR");
+      } //if
+      else if (pid == 0) { //child
+	if(ev -> get_argc() == 0){
+	  //is one process
+	} else if(numProc+1 < ev {
+	  if(dup2(pipefd1[1], STDOUT_FILENO) == -1){
+	    //error
+	  }//if
+	}//else
+	if(numProc+1 < ev-> get_argc()){
+	  if(dup2(pipefd1[0], STDIN_FILENO) == -1){
+	    //error
+	  }//if
+	}//if
+	close_pipe(pipefd1);
+	close_pipe(pipefd2);
+	execvp(args[0], args);
+      } //else if (child)
+      else{ //parent
+	if(numProc != get_argc()-1) continue;
+	close_pipe(pipefd1);
+	close_pipe(pipefd2);
+	if(false){//ev -> is_background());
+	} else{
+	  waitpid(pid,nullptr,0);
+	  /*
+	    if ((wpid = waitpid(pid, &pstatus, WNOHANG)) == -1) {
+	    perror("waitpid");
+	    } //if
+	    else if (WIFEXITED(pstatus)){ //if child process exits
+	    //cout << "exited\n";
+	    //dead = true;
+	    } //else if child exited
+	    else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
+	    //cout << "signaled\n";
+	    //dead = true;
+	    } //else if child signaled
+	  */
+	}//else isback
+      }//else
+    }//for numProc
     delete ev; //call deconstructor to reset variables
   } //while
 } //main
@@ -156,3 +181,14 @@ string get_prompt(){
 
   return the_prompt;
 } //get_prompt
+
+void close_pipe(int pipefd [2]) {
+  if (close(pipefd[0]) == -1) {
+    perror("close");
+    exit(EXIT_FAILURE);
+  } // if
+  if (close(pipefd[1]) == -1) {
+    perror("close");
+    exit(EXIT_FAILURE);
+  } // if
+} // close_pipe
