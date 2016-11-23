@@ -48,7 +48,7 @@ eval::~eval(){
   total_pipes = 0;
   total_procs = 0;
   total_args = 0;
-  process_args = 0;	
+  process_args = 0;
   std_in = "";
   std_out = "";
   std_err = "";
@@ -130,6 +130,7 @@ void eval::initialize_vars(int argc, const char *argv[]){
      (strcmp(argv[1], "less") != 0) && (strcmp(argv[1], "echo") != 0)){
     for(int m = 1; m < argc; m++){
       arg_v[m-1] = argv[m];
+      total_args++;
     } //for
     return;
   } //if
@@ -188,6 +189,12 @@ void eval::initialize_vars(int argc, const char *argv[]){
 	    for(int g = x; cont_loop; g++){ //loop until the closing quote is found
 	      for(unsigned int v = 0; v < strlen(argv[g]); v++){ //loop through each item's char
 		if((g == x) && (v == 0)) continue; //bypass argv[x][0] since its an opening quote
+
+		if((argv[g][v] == '\\') && (argv[g][v+1] == '\\')){ // two consecutive backslash procude a singe one 
+		  quote_content += argv[g][v];
+		  v++;
+		} //if
+
 		if(argv[g][v] == '"'){ //on read next "
 		  if(v != 0){
 		    if(argv[g][v-1] == '\\'){ //if \"
@@ -249,7 +256,7 @@ string *eval::get_process(int element){
   } //for
 
   return the_proc;
-} //get_process
+} //set_procs
 
 /* returns the total arguments
  * of a specific process 
