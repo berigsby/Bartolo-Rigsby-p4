@@ -74,13 +74,13 @@ int main(int argc, const char *argv[]){
     } //if
 
     int pipefd1[2];
-    int pipefd2[2];
+    //int pipefd2[2];
     if(pipe(pipefd1) == -1){
       //error
     }//if
-    if(pipe(pipefd2) == -1){
+    //if(pipe(pipefd2) == -1){
       //error
-    }//if
+    //}//if
 
     for(int numProc = 0; numProc <= ev -> get_pipes(); numProc++){
       if((pid = fork()) < 0) { // error 
@@ -100,7 +100,7 @@ int main(int argc, const char *argv[]){
 	  }//if
 	}//if
 	close_pipe(pipefd1);
-	close_pipe(pipefd2);
+	//close_pipe(pipefd2);
 	string *arg_v1 = ev -> get_process(numProc);
 	char ** args = new char * [ev -> get_process_args(numProc)];
 	for(int i = 0; i < ev -> get_process_args(numProc); i++){
@@ -110,9 +110,12 @@ int main(int argc, const char *argv[]){
 	execvp(args[0], args);
       } //else if (child)
       else{ //parent
-	if(numProc != ev -> get_pipes()) continue;
+	if(numProc != ev -> get_pipes()){
+	  // waitpid(pid,nullptr,0);
+	  continue;
+	}//if
 	close_pipe(pipefd1);
-	close_pipe(pipefd2);
+	//close_pipe(pipefd2);
 	if(false){//ev -> is_background());
 	} else{
 	  waitpid(pid,nullptr,0);
