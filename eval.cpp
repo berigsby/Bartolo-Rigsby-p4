@@ -27,12 +27,17 @@ string std_in;
 string std_out;
 string std_err;
 
+bool out_trunc;
+bool err_trunc;
+
 bool background = false;
 
 /* constructor calls the function
  * which initializes all vars
  */
 eval::eval(int the_argc, const char *the_argv[]){
+  out_trunc = false;
+  err_trunc = false;
 
   arg_v = new string[the_argc];
   the_proc = new string[100];
@@ -52,6 +57,8 @@ eval::~eval(){
   std_in = "";
   std_out = "";
   std_err = "";
+  out_trunc = false;
+  err_trunc = false;
   background = false;
   delete [] arg_v;
   delete [] the_proc;
@@ -156,8 +163,8 @@ void eval::initialize_vars(int argc, const char *argv[]){
 	switch(w){
 	case 0: std_in = file;      break;  
 	case 1: std_out = file;     break;
-	case 2: std_out = file;     break; 
-	case 3: std_err = file;     break;
+	case 2: std_out = file; out_trunc = true;     break; 
+	case 3: std_err = file; err_trunc = true;     break;
 	case 4: std_err = file;     break;
 	default:                    break;
 	} //switch
