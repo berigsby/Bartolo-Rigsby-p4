@@ -255,10 +255,14 @@ string *eval::get_process(int element){
     } //if
     
     if(iteration == element){
-      if(arg_v[i] != "|"){
+      if((arg_v[i] == "<") || (arg_v[i] == ">") || (arg_v[i] == ">>") 
+	 || (arg_v[i] == "e>>") || (arg_v[i] == "e>")){
+	break;
+      } //if
+      else if(arg_v[i] != "|"){
 	the_proc[x] = arg_v[i];
 	x++;
-      } //if
+      } //else if
     } //if
   } //for
 
@@ -280,9 +284,13 @@ int eval::get_process_args(int element){
     } //if
     
     if(iteration == element){
-      if(arg_v[i] != "|"){
-	x++;
+      if((arg_v[i] == "<") || (arg_v[i] == ">") || (arg_v[i] == ">>") 
+	 || (arg_v[i] == "e>>") || (arg_v[i] == "e>")){
+	break;
       } //if
+      else if(arg_v[i] != "|"){
+	x++;
+      } //else if
     } //if
   } //for
 
