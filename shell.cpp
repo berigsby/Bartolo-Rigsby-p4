@@ -102,6 +102,14 @@ int main(int argc, const char *argv[]){
 	}//if
 	close_pipe(pipefd1);
 	//close_pipe(pipefd2);
+	if(numProc == 0 && (ev -> get_std_in()).compare("STDIN_FILENO") != 0){
+	  int filein = -1;
+	  filein = open((ev->get_std_in()).c_str(), O_RDONLY);
+	  if(dup2(filein, STDIN_FILENO) == -1){
+	    //error
+	  }//if
+	  close(filein);
+	}//if
 	if(numProc == ev -> get_pipes()){
 	  if((ev -> get_std_out()).compare("STDOUT_FILENO") != 0){
 	    int fileout = -1;
