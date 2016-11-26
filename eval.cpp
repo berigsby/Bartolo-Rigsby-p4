@@ -38,6 +38,9 @@ bool background = false;
 eval::eval(int the_argc, const char *the_argv[]){
   out_trunc = false;
   err_trunc = false;
+  std_in = "STDIN_FILENO";
+  std_out = "STDOUT_FILENO";
+  std_err = "STDERR_FILENO";
 
   arg_v = new string[the_argc];
   the_proc = new string[100];
@@ -121,6 +124,22 @@ string *eval::get_argv(){
 bool eval::is_background(){
   return background;
 } //is_background
+
+/**
+ *
+ *
+ */
+bool eval::get_out_trunc(){
+  return out_trunc;
+}//get_out_trunc
+
+/**
+ *
+ *
+ */
+bool eval::get_err_trunc(){
+  return err_trunc;
+}//get_out_trunc
 
 /* takes in the user arguments and
  * determines the number of pipes

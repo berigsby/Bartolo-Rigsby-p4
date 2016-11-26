@@ -10,6 +10,7 @@
 #include "eval.h"
 #include <signal.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 //@author Timothy Bartol
 //811847393
@@ -101,6 +102,17 @@ int main(int argc, const char *argv[]){
 	}//if
 	close_pipe(pipefd1);
 	//close_pipe(pipefd2);
+	if(numProc == ev -> get_pipes()){
+	  if((ev -> get_std_out()).compare("STDOUT_FILENO") != 0){
+	    int fileout = -1;
+	    if(ev-> get_out_trunc()) fileout = open((ev->get_std_out()).c_str(), O_WRONLY | O_TRUNC);
+	    else fileout = open((ev->get_std_out()).c_str(), O_WRONLY | O_APPEND);
+	    if(dup2(fileout, STDOUT_FILENO) == -1){
+	      //error
+	    }//if
+	    close(fileout);
+	  }//if did change
+	}//if last proc
 	string *arg_v1 = ev -> get_process(numProc);
 	char ** args = new char * [ev -> get_process_args(numProc)];
 	for(int i = 0; i < ev -> get_process_args(numProc); i++){
