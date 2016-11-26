@@ -113,6 +113,15 @@ int main(int argc, const char *argv[]){
 	    close(fileout);
 	  }//if did change
 	}//if last proc
+	if((ev -> get_std_err()).compare("STDERR_FILENO") != 0){
+	  int fileout = -1;
+	  if(ev-> get_err_trunc()) fileout = open((ev->get_std_err()).c_str(), O_WRONLY | O_TRUNC);
+	  else fileout = open((ev->get_std_err()).c_str(), O_WRONLY | O_APPEND);
+	  if(dup2(fileout, STDOUT_FILENO) == -1){
+	    //error
+	  }//if
+	  close(fileout);
+	}//if did change
 	string *arg_v1 = ev -> get_process(numProc);
 	char ** args = new char * [ev -> get_process_args(numProc)];
 	for(int i = 0; i < ev -> get_process_args(numProc); i++){
