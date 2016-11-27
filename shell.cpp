@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include "eval.h"
+#include "jobs.h"
 #include <signal.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -42,15 +43,9 @@ int main(int argc, const char *argv[]){
   while(!dead){
     eval *ev = new eval(get_input_info()); //get user input information
     string *arg_v = ev -> get_argv();
-    /*
-    char ** args = new char * [ev -> get_argc()];
-    for(int i = 0; i < ev -> get_argc(); i++){
-      args[i] = strdup(arg_v[i].c_str());
-    } //for
-    args[ev->get_argc()] = nullptr;
-    */
+
     if(ev -> get_procs() == 0){ //check for other commands other than processes
-      if(arg_v[0] == "exit"){ //exit
+      if(arg_v[0].compare("exit") == 0){ //exit
 	if(ev -> get_argc() == 2){ //exit (int)
 	  exit(stoi(arg_v[1]));
 	} //if
