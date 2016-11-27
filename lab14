@@ -23,6 +23,7 @@ using namespace std;
 
 eval get_input_info();
 string get_prompt();
+void display_help_info();
 
 /* main takes in user input and
  * passes it to eval class. Then
@@ -34,6 +35,12 @@ int main(int argc, const char *argv[]){
   cout.setf(std::ios_base::unitbuf); //turn off buffering for cout
   pid_t pid, wpid; //various PIDs
   int pstatus; //process pstatus
+
+  signal(SIGTSTP, SIG_IGN); //ignore ctrl-z
+//signal(SIGINT, SIG_IGN); //ctrl-c //keep this commented out for now so we can easily exit
+  signal(SIGQUIT, SIG_IGN);
+  signal(SIGTTIN, SIG_IGN);
+  signal(SIGTTOU, SIG_IGN); 
 
   while(true){ //shell infinite loop
     eval *ev = new eval(get_input_info()); //get user input information
@@ -60,7 +67,7 @@ int main(int argc, const char *argv[]){
 	} //if
       } //else if
       else if(arg_v[0] == "help"){ //help
-	//TODO implement help information
+	display_help_info();
       } //else if 
       
       delete ev; //call deconstructor to reset variables
@@ -75,6 +82,12 @@ int main(int argc, const char *argv[]){
 	string *arg_v1 = ev -> get_process(numProc);
 	char **args = new char *[ev -> get_process_args(numProc)];
 
+	signal(SIGTSTP, SIG_DFL); //ignore ctrl-z
+	signal(SIGINT, SIG_DFL); //ctrl-c
+	signal(SIGQUIT, SIG_DFL);
+	signal(SIGTTIN, SIG_DFL);
+	signal(SIGTTOU, SIG_DFL); 
+
 	for(int j = 0; j < ev -> get_process_args(numProc); j++){
 	  args[j] = strdup(arg_v1[j].c_str());
 	} //for 
@@ -88,9 +101,6 @@ int main(int argc, const char *argv[]){
       else{ //parent
 	bool dead = false;
 
-	signal(SIGTSTP, SIG_IGN); //ignore ctrl-z
-	//TODO add other signals to ignore
-      
 	while(!dead){
 	  if ((wpid = wait(&pstatus) == -1)) {
 	    perror("waitpid");
@@ -122,6 +132,7 @@ int main(int argc, const char *argv[]){
 	} //while (parent)
       } //else (parent)
      } //for
+  
      delete ev; //call deconstructor to reset variables
   } //while (shell)
 } //main
@@ -184,3 +195,25 @@ string get_prompt(){
 
   return the_prompt;
 } //get_prompt
+
+/* functions outputs to
+ * standard out helpful
+ * information on how to
+ * use the program
+ */
+void display_help_info(){
+
+   cout << "\n- bg JID - Resume the stopped job JID in the background, as if it had been started with&.\n" <<
+     "- cd [PATH] - Change the current directory toPATH. The environmental variable HOME is the default PATH.\n" <<
+     "- exit [N] - Cause the shell to exit with a status of N. If Nis omitted, the exit status is that of the last job executed.\n" <<
+     "- export NAME[=WORD] - NAMEis automatically included in the environment of subsequently executed jobs.\n" <<
+     "- fg JID - Resume job JID in the foreground, and make it the current job.\n" <<
+     "- help - Display helpful information about builtin commands.\n" <<
+     "- jobs - List current jobs.\n";
+  
+   cout << "\n- cat [file] - Display a file's contents.\n" <<
+     "- grep [word/s] [file] - Search for a word within a file.\n" <<
+     "- less [file] - Display contents of file and enable scrolling.\n" <<
+     "- echo [input] - Echo input to standard out.\n\n";
+
+} //display_help_info
