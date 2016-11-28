@@ -33,7 +33,7 @@ void display_help_info();
 int main(int argc, const char *argv[]){
 
   cout.setf(std::ios_base::unitbuf); //turn off buffering for cout
-  pid_t pid, wpid; //various PIDs
+  pid_t pid, wpid, upid; //various PIDs
   int pstatus; //process pstatus
 
   signal(SIGTSTP, SIG_IGN); //ignore ctrl-z
@@ -100,35 +100,52 @@ int main(int argc, const char *argv[]){
       } //else if (child)
       else{ //parent
 	bool dead = false;
+	bool cont = true;
 
 	while(!dead){
-	  if ((wpid = wait(&pstatus) == -1)) {
-	    perror("waitpid");
+	  if ((wpid = waitpid(pid, &pstatus, WNOHANG) == -1)){
 	    dead = true;
+	    perror("waitpid: WNOHANG");
 	  } //if
 	  else if (WIFEXITED(pstatus)){ //if child process exits
 	    cout << "\n" <<  pid << " Exited (" << WEXITSTATUS(pstatus) << ") emacs\n";
 	    dead = true;
+	    cont = false;
 	  } //else if child exited
 	  else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
 	    int sig = WTERMSIG(pstatus);
 	    cout << "\n" <<  pid << " Exited (" << strsignal(sig) << ") emacs\n";
 	    dead = true;
+	    cont = false;
 	  } //else if child signaled
+	  
+	  if((upid = waitpid(pid, &pstatus, WUNTRACED) == -1)){
+	    dead = true;
+	    perror("waitpid: WUNTRACED");
+	  } //if
 	  else if(WIFSTOPPED(pstatus)){
 	    cout << "\n" <<  pid << " Stopped ";
 	    for(int n = 0; n < ev -> get_process_args(numProc); n++){
 	      cout << ev -> get_process(numProc)[n] << " ";
 	    } //for
 	    cout << "\n";
+	    dead = true;
 	  } //else if
-	  else if(WIFCONTINUED(pstatus)){
-	    cout << "\n" <<  pid << " Continued ";
-	    for(int n = 0; n < ev -> get_process_args(numProc); n++){
+
+	  if(cont){
+	    if((upid = waitpid(pid, &pstatus, WCONTINUED) == -1)){
+	      dead = true;
+	      perror("waitpid: WCONTINUED");
+	    } //if
+	    else if(WIFCONTINUED(pstatus)){
+	      cout << "\n" <<  pid << " Continued ";
+	      for(int n = 0; n < ev -> get_process_args(numProc); n++){
 	      cout << ev -> get_process(numProc)[n] << " ";
-	    } //for
-	    cout << "\n";
-	  } //else if
+	      } //for
+	      cout << "\n";
+	      dead = true;
+	    } //else if 
+	  } //if (cont)
 	} //while (parent)
       } //else (parent)
      } //for
