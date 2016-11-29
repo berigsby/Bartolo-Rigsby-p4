@@ -245,10 +245,10 @@ string get_prompt(){
  */
 void display_help_info(){
 
-   cout << "\n- bg JID - Resume the stopped job JID in the background, as if it had been started with&.\n" <<
+   cout << "\n- bg JID - Resume the stopped job JID in the background, as if it had been started with &.\n" <<
      "- cd [PATH] - Change the current directory toPATH. The environmental variable HOME is the default PATH.\n" <<
-     "- exit [N] - Cause the shell to exit with a status of N. If Nis omitted, the exit status is that of the last job executed.\n" <<
-     "- export NAME[=WORD] - NAMEis automatically included in the environment of subsequently executed jobs.\n" <<
+     "- exit [N] - Cause the shell to exit with a status of N. If N is omitted, the exit status is that of the last job executed.\n" <<
+     "- export NAME[=WORD] - NAME is automatically included in the environment of subsequently executed jobs.\n" <<
      "- fg JID - Resume job JID in the foreground, and make it the current job.\n" <<
      "- help - Display helpful information about builtin commands.\n" <<
      "- jobs - List current jobs.\n";
