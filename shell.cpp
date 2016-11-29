@@ -44,6 +44,8 @@ int main(int argc, const char *argv[]){
     eval *ev = new eval(get_input_info()); //get user input information
     string *arg_v = ev -> get_argv();
 
+
+
     if(ev -> get_procs() == 0){ //check for other commands other than processes
       if(arg_v[0].compare("exit") == 0){ //exit
 	if(ev -> get_argc() == 2){ //exit (int)

@@ -24,6 +24,7 @@ using namespace std;
 eval get_input_info();
 string get_prompt();
 void display_help_info();
+void close_pipe(int pipefd [2]);
 
 /* main takes in user input and
  * passes it to eval class. Then
@@ -74,6 +75,11 @@ int main(int argc, const char *argv[]){
       continue; //go to while loop
     } //if
 
+    int pipefd[2];//piping
+    if(pipe(pipefd) == -1){
+      perror("pipe");
+    }//if
+
     for(int numProc = 0; numProc <= ev -> get_pipes(); numProc++){ //loop on number of processes
       if((pid = fork()) < 0) { // error 
 	perror("FORK ERROR");
@@ -92,6 +98,21 @@ int main(int argc, const char *argv[]){
 	  args[j] = strdup(arg_v1[j].c_str());
 	} //for 
 
+	//if there is a pipe
+	if(ev -> get_pipes() > 0){
+	  if(numProc == 0){//if this is the first process
+	    if(dup2(pipefd[1], STDOUT_FILENO) == -1){
+	      perror("pipeout");
+	    }//if
+	  }else{//second process
+	    if(dup2(pipefd[0], STDIN_FILENO) == -1){
+	      perror("pipein");
+	    }//if
+	  }//else
+	}//if
+
+	close_pipe(pipefd);//close pipe in child
+
 	args[ev -> get_process_args(numProc)] = nullptr; //last element is \0
 	execvp(args[0], args);
 	
@@ -99,6 +120,10 @@ int main(int argc, const char *argv[]){
 	exit(EXIT_FAILURE);
       } //else if (child)
       else{ //parent
+	if(numProc == ev -> get_pipes()){//close pipe if last process
+	  close_pipe(pipefd);
+	}//if
+
 	bool dead = false;
 	bool cont = true;
 
@@ -234,3 +259,18 @@ void display_help_info(){
      "- echo [input] - Echo input to standard out.\n\n";
 
 } //display_help_info
+
+/**
+ * Used for closing a pipe
+ *
+ */
+void close_pipe(int pipefd [2]) {
+  if (close(pipefd[0]) == -1) {
+    perror("close");
+    exit(EXIT_FAILURE);
+  } // if
+  if (close(pipefd[1]) == -1) {
+    perror("close");
+    exit(EXIT_FAILURE);
+  } // if
+} // close_pipe
