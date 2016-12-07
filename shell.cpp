@@ -97,113 +97,114 @@ int main(int argc, const char *argv[]){
       else if(arg_v[0] == "help"){ //help
 	display_help_info();
       } //else if 
-    } //if
+    }else{
 
-    int pipefd[2];
-
-    if(pipe(pipefd) == -1){
-      perror("pipe");
-    }//if
-
-    for(int numProc = 0; numProc <= ev -> get_pipes(); numProc++){ //loop on number of processes
-      if((pid = fork()) < 0) { // error 
-	perror("FORK ERROR");
-      } //if
-      else if (pid == 0) { //child
-	string *arg_v1 = ev -> get_process(numProc);
-	char ** args = new char * [ev -> get_process_args(numProc)];
-	
-	for(int i = 0; i < ev -> get_process_args(numProc); i++){
-	  args[i] = strdup(arg_v1[i].c_str());
-	} //for
-
-	signal(SIGTSTP, SIG_DFL); //ignore ctrl-z
-	signal(SIGINT, SIG_DFL); //ctrl-c
-	signal(SIGQUIT, SIG_DFL);
-	signal(SIGTTIN, SIG_DFL);
-	signal(SIGTTOU, SIG_DFL); 
-	
-	//if there is a pipe
-	if(ev -> get_pipes() > 0){
-	  if(numProc == 0){//if this is the first process
-	    if(dup2(pipefd[1], STDOUT_FILENO) == -1){
-	      perror("pipeout");
-	    }//if
-	  } //if
-	  else{//second process
-	    if(dup2(pipefd[0], STDIN_FILENO) == -1){
-	      perror("pipein");
-	    }//if
-	  }//else
-	}//if
-
-	close_pipe(pipefd);//close pipe in child
+      int pipefd[2];
       
-	if(numProc == 0 && (ev -> get_std_in()).compare("STDIN_FILENO") != 0){
-	  int filein = -1;
-	  filein = open((ev -> get_std_in()).c_str(), O_RDONLY);
-	  if(dup2(filein, STDIN_FILENO) == -1){
-	    perror("dup2");
+      if(pipe(pipefd) == -1){
+	perror("pipe");
+      }//if
+      
+      for(int numProc = 0; numProc <= ev -> get_pipes(); numProc++){ //loop on number of processes
+	if((pid = fork()) < 0) { // error 
+	  perror("FORK ERROR");
+	} //if
+	else if (pid == 0) { //child
+	  string *arg_v1 = ev -> get_process(numProc);
+	  char ** args = new char * [ev -> get_process_args(numProc)];
+	  
+	  for(int i = 0; i < ev -> get_process_args(numProc); i++){
+	    args[i] = strdup(arg_v1[i].c_str());
+	  } //for
+	  
+	  signal(SIGTSTP, SIG_DFL); //ignore ctrl-z
+	  signal(SIGINT, SIG_DFL); //ctrl-c
+	  signal(SIGQUIT, SIG_DFL);
+	  signal(SIGTTIN, SIG_DFL);
+	  signal(SIGTTOU, SIG_DFL); 
+	
+	  //if there is a pipe
+	  if(ev -> get_pipes() > 0){
+	    if(numProc == 0){//if this is the first process
+	      if(dup2(pipefd[1], STDOUT_FILENO) == -1){
+		perror("pipeout");
+	      }//if
+	    } //if
+	    else{//second process
+	      if(dup2(pipefd[0], STDIN_FILENO) == -1){
+		perror("pipein");
+	      }//if
+	    }//else
 	  }//if
-	  close(filein);
-	}//if
-	if(numProc == ev -> get_pipes()){
-	  if((ev -> get_std_out()).compare("STDOUT_FILENO") != 0){
+
+	  close_pipe(pipefd);//close pipe in child
+	  
+	  if(numProc == 0 && (ev -> get_std_in()).compare("STDIN_FILENO") != 0){
+	    int filein = -1;
+	    filein = open((ev -> get_std_in()).c_str(), O_RDONLY);
+	    if(dup2(filein, STDIN_FILENO) == -1){
+	      perror("dup2");
+	    }//if
+	    close(filein);
+	  }//if
+	  if(numProc == ev -> get_pipes()){
+	    if((ev -> get_std_out()).compare("STDOUT_FILENO") != 0){
+	      int fileout = -1;
+	      if(ev -> get_out_trunc()) fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_TRUNC);
+	      else fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_APPEND);
+	      if(dup2(fileout, STDOUT_FILENO) == -1){
+		perror("dup2");
+	      }//if
+	      close(fileout);
+	    }//if did change
+	  }//if last proc
+	  if((ev -> get_std_err()).compare("STDERR_FILENO") != 0){
 	    int fileout = -1;
-	    if(ev -> get_out_trunc()) fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_TRUNC);
-	    else fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_APPEND);
+	    if(ev-> get_err_trunc()) fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_TRUNC);
+	    else fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_APPEND);
 	    if(dup2(fileout, STDOUT_FILENO) == -1){
 	      perror("dup2");
 	    }//if
-	    close(fileout);
-	  }//if did change
-	}//if last proc
-	if((ev -> get_std_err()).compare("STDERR_FILENO") != 0){
-	  int fileout = -1;
-	  if(ev-> get_err_trunc()) fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_TRUNC);
-	  else fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_APPEND);
-	  if(dup2(fileout, STDOUT_FILENO) == -1){
-	    perror("dup2");
-	  }//if
-	  close(fileout); 
-	}//if did change 
-
-	args[ev->get_process_args(numProc)] = nullptr;
-	execvp(args[0], args);
-      } //else if (child)
-      else{ //parent
-	if(!(ev -> is_background())){
-	  if(numProc == ev -> get_pipes()){ //close pipe if last process
-	    close_pipe(pipefd);
-	  }//if
-	
-	  if((wpid = waitpid(pid, &pstatus, WUNTRACED | WCONTINUED | 0) == -1)){
-	    perror("waitpid");
-	  } //if
-	  else if (WIFEXITED(pstatus)){ //if child process exits
-	    cout << "\n" <<  pid << " Exited (" << WEXITSTATUS(pstatus) << ") emacs\n";
-	  } //else if child exited
-	  else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
-	    int sig = WTERMSIG(pstatus);
-	    cout << "\n" <<  pid << " Exited (" << strsignal(sig) << ") emacs\n";
-	  } //else if child signaled 
-	  else if(WIFSTOPPED(pstatus)){
-	    cout << "\n" <<  pid << " Stopped ";
-	    for(int n = 0; n < ev -> get_process_args(numProc); n++){
-	      cout << ev -> get_process(numProc)[n] << " ";
-	    } //for
-	    cout << "\n";
-	  } //else if
-	  else if(WIFCONTINUED(pstatus)){
-	    cout << "\n" <<  pid << " Continued ";
-	    for(int n = 0; n < ev -> get_process_args(numProc); n++){
-	      cout << ev -> get_process(numProc)[n] << " ";
-	    } //for
-	    cout << "\n";
-	  } //else if 
-	} //if (!is_background)
-      }//else
-    }//for numProc
+	    close(fileout); 
+	  }//if did change 
+	  
+	  args[ev->get_process_args(numProc)] = nullptr;
+	  execvp(args[0], args);
+	} //else if (child)
+	else{ //parent
+	  if(!(ev -> is_background())){
+	    if(numProc == ev -> get_pipes()){ //close pipe if last process
+	      close_pipe(pipefd);
+	    }//if
+	    
+	    if((wpid = waitpid(pid, &pstatus, WUNTRACED | WCONTINUED | 0) == -1)){
+	      perror("waitpid");
+	    } //if
+	    else if (WIFEXITED(pstatus)){ //if child process exits
+	      cout << "\n" <<  pid << " Exited (" << WEXITSTATUS(pstatus) << ") emacs\n";
+	    } //else if child exited
+	    else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
+	      int sig = WTERMSIG(pstatus);
+	      cout << "\n" <<  pid << " Exited (" << strsignal(sig) << ") emacs\n";
+	    } //else if child signaled 
+	    else if(WIFSTOPPED(pstatus)){
+	      cout << "\n" <<  pid << " Stopped ";
+	      for(int n = 0; n < ev -> get_process_args(numProc); n++){
+		cout << ev -> get_process(numProc)[n] << " ";
+	      } //for
+	      cout << "\n";
+	    } //else if
+	    else if(WIFCONTINUED(pstatus)){
+	      cout << "\n" <<  pid << " Continued ";
+	      for(int n = 0; n < ev -> get_process_args(numProc); n++){
+		cout << ev -> get_process(numProc)[n] << " ";
+	      } //for
+	      cout << "\n";
+	    } //else if 
+	  } //if (!is_background)
+	}//else
+      }//for numProc
+    } //else
     delete ev; //call deconstructor to reset variables
   } //while
 } //main
