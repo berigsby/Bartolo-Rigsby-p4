@@ -25,6 +25,7 @@ using namespace std;
 
 void close_pipe(int pipefd[2]);
 eval get_input_info();
+void display_help_info();
 string get_prompt();
 
 /* main takes in user input and
@@ -39,7 +40,7 @@ int main(int argc, const char *argv[]){
   int pstatus; //process pstatus
 
   signal(SIGTSTP, SIG_IGN); //ignore ctrl-z
-  //  signal(SIGINT, SIG_IGN); //ctrl-c
+  signal(SIGINT, SIG_IGN); //ctrl-c
   signal(SIGQUIT, SIG_IGN);
   signal(SIGTTIN, SIG_IGN);
   signal(SIGTTOU, SIG_IGN); 
@@ -94,13 +95,13 @@ int main(int argc, const char *argv[]){
 	} //if
       } //else if
       else if(arg_v[0] == "help"){ //help
-	//TODO implement help information
+	display_help_info();
       } //else if 
     } //if
 
-    int pipefd1[2];
+    int pipefd[2];
 
-    if(pipe(pipefd1) == -1){
+    if(pipe(pipefd) == -1){
       perror("pipe");
     }//if
 
@@ -109,6 +110,12 @@ int main(int argc, const char *argv[]){
 	perror("FORK ERROR");
       } //if
       else if (pid == 0) { //child
+	string *arg_v1 = ev -> get_process(numProc);
+	char ** args = new char * [ev -> get_process_args(numProc)];
+	
+	for(int i = 0; i < ev -> get_process_args(numProc); i++){
+	  args[i] = strdup(arg_v1[i].c_str());
+	} //for
 
 	signal(SIGTSTP, SIG_DFL); //ignore ctrl-z
 	signal(SIGINT, SIG_DFL); //ctrl-c
@@ -116,35 +123,37 @@ int main(int argc, const char *argv[]){
 	signal(SIGTTIN, SIG_DFL);
 	signal(SIGTTOU, SIG_DFL); 
 	
-	if(ev -> get_pipes() == 0){
-	  //is one process
-	} else if(numProc < ev -> get_pipes()) {
-	  if(dup2(pipefd1[1], STDOUT_FILENO) == -1){
-	    //error
-	  }//if
-	}//else
-	if(numProc != 0){
-	  if(dup2(pipefd1[0], STDIN_FILENO) == -1){
-	    //error
-	  }//if
+	//if there is a pipe
+	if(ev -> get_pipes() > 0){
+	  if(numProc == 0){//if this is the first process
+	    if(dup2(pipefd[1], STDOUT_FILENO) == -1){
+	      perror("pipeout");
+	    }//if
+	  } //if
+	  else{//second process
+	    if(dup2(pipefd[0], STDIN_FILENO) == -1){
+	      perror("pipein");
+	    }//if
+	  }//else
 	}//if
-	close_pipe(pipefd1);
-	//close_pipe(pipefd2);
+
+	close_pipe(pipefd);//close pipe in child
+      
 	if(numProc == 0 && (ev -> get_std_in()).compare("STDIN_FILENO") != 0){
 	  int filein = -1;
 	  filein = open((ev -> get_std_in()).c_str(), O_RDONLY);
 	  if(dup2(filein, STDIN_FILENO) == -1){
-	    //error
+	    perror("dup2");
 	  }//if
 	  close(filein);
 	}//if
 	if(numProc == ev -> get_pipes()){
 	  if((ev -> get_std_out()).compare("STDOUT_FILENO") != 0){
 	    int fileout = -1;
-	    if(ev-> get_out_trunc()) fileout = open((ev->get_std_out()).c_str(), O_WRONLY | O_TRUNC);
+	    if(ev -> get_out_trunc()) fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_TRUNC);
 	    else fileout = open((ev -> get_std_out()).c_str(), O_WRONLY | O_APPEND);
 	    if(dup2(fileout, STDOUT_FILENO) == -1){
-	      //error
+	      perror("dup2");
 	    }//if
 	    close(fileout);
 	  }//if did change
@@ -154,23 +163,18 @@ int main(int argc, const char *argv[]){
 	  if(ev-> get_err_trunc()) fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_TRUNC);
 	  else fileout = open((ev -> get_std_err()).c_str(), O_WRONLY | O_APPEND);
 	  if(dup2(fileout, STDOUT_FILENO) == -1){
-	    //error
+	    perror("dup2");
 	  }//if
-	  close(fileout);
-	}//if did change
-	string *arg_v1 = ev -> get_process(numProc);
-	char ** args = new char * [ev -> get_process_args(numProc)];
-	for(int i = 0; i < ev -> get_process_args(numProc); i++){
-	  args[i] = strdup(arg_v1[i].c_str());
-	} //for
+	  close(fileout); 
+	}//if did change 
 
 	args[ev->get_process_args(numProc)] = nullptr;
 	execvp(args[0], args);
       } //else if (child)
       else{ //parent
 	if(!(ev -> is_background())){
-	  if(numProc != ev -> get_pipes()){
-	    close_pipe(pipefd1);
+	  if(numProc == ev -> get_pipes()){ //close pipe if last process
+	    close_pipe(pipefd);
 	  }//if
 	
 	  if((wpid = waitpid(pid, &pstatus, WUNTRACED | WCONTINUED | 0) == -1)){
@@ -216,10 +220,12 @@ eval get_input_info(){
   string prompt;
 
   prompt = get_prompt();
-
-  cout << prompt;
-  getline(cin, input); //store string in input
   
+  while(input.empty()){ //if user enters just ENTER
+    cout << prompt;
+    getline(cin, input); //store string in input
+  } //while
+
   string input_args[100];
   const char *args[100];
     
@@ -262,6 +268,23 @@ string get_prompt(){
   return the_prompt;
   
 } //get_prompt
+
+void display_help_info(){
+
+  cout << "\n- bg JID - Resume the stopped job JID in the background, as if it had been started with &.\n" <<
+    "- cd [PATH] - Change the current directory toPATH. The environmental variable HOME is the default PATH.\n" <<
+    "- exit [N] - Cause the shell to exit with a status of N. If N is omitted, the exit status is that of the last job executed.\n" <<
+    "- export NAME[=WORD] - NAME is automatically included in the environment of subsequently executed jobs.\n" <<
+    "- fg JID - Resume job JID in the foreground, and make it the current job.\n" <<
+    "- help - Display helpful information about builtin commands.\n" <<
+    "- jobs - List current jobs.\n";
+  
+  cout << "\n- cat [file] - Display a file's contents.\n" <<
+    "- grep [word/s] [file] - Search for a word within a file.\n" <<
+    "- less [file] - Display contents of file and enable scrolling.\n" <<
+    "- echo [input] - Echo input to standard out.\n\n";
+
+} //display_help_info
 
 void close_pipe(int pipefd [2]) {
   if (close(pipefd[0]) == -1) {
