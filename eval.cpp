@@ -7,9 +7,6 @@
 #include <iomanip>
 #include "eval.h"
 
-//@author Timothy Bartolo
-//811847393
-
 using namespace std;
 
 const char *procs[] = {"cat", "grep", "less", "echo"};

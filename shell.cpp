@@ -13,9 +13,6 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-//@author Timothy Bartol
-//811847393
-
 /* program simulates the input
  * screen of the UNIX terminal.
  * processes, pipelines, and

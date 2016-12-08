@@ -3,9 +3,6 @@
 #include <string.h>
 #include <string>
 
-//@author Timothy Bartolo
-//811847393
-
 using namespace std;
 
 class eval{
