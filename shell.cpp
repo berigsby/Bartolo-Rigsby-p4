@@ -46,6 +46,7 @@ int main(int argc, const char *argv[]){
   signal(SIGTTOU, SIG_IGN); 
     
   while(true){
+    /*
     wpid = waitpid(-1, &pstatus, WNOHANG | WSTOPPED | WCONTINUED | 0);
     if (wpid > 0){
       if(WIFEXITED(pstatus)){ //if child process exits
@@ -57,20 +58,20 @@ int main(int argc, const char *argv[]){
       } //else if child signaled
       else if(WIFSTOPPED(pstatus)){
 	cout << "\n" <<  pid << " Stopped ";
-	/*for(int n = 0; n < ev -> get_process_args(numProc); n++){
+	///////////////////for(int n = 0; n < ev -> get_process_args(numProc); n++){
 	  cout << ev -> get_process(numProc)[n] << " ";
-	  } //for */
+	  } //for ////////
 	cout << "(&)\n";
       } //else if
       else if(WIFCONTINUED(pstatus)){
 	cout << "\n" <<  pid << " Continued ";
-	/*for(int n = 0; n < ev -> get_process_args(numProc); n++){
+	///////////////for(int n = 0; n < ev -> get_process_args(numProc); n++){
 	  cout << ev -> get_process(numProc)[n] << " ";
-	  } //for */
+	  } //for ////////
 	cout << "(&)\n";
       } //else if
     } //if
-
+*/
     eval *ev = new eval(get_input_info()); //get user input information
     string *arg_v = ev -> get_argv();
 
@@ -200,26 +201,33 @@ int main(int argc, const char *argv[]){
 	      else close_pipe(pipefd);
 	    }//if
 	    
+	    string *arg_v1 = ev -> get_process(numProc);
+	    char ** args = new char * [ev -> get_process_args(numProc)];
+	    for(int i = 0; i < ev -> get_process_args(numProc); i++){
+	      args[i] = strdup(arg_v1[i].c_str());
+	    } //for
+	    args[ev->get_process_args(numProc)] = nullptr;
+
 	    //wait(&pstatus);
 	    if((wpid = waitpid(pid, &pstatus, WUNTRACED | WCONTINUED | 0) == -1)){
 	      perror("waitpid");
 	    } //if
 	    else if (WIFEXITED(pstatus)){ //if child process exits
-	      cout << "\n" <<  pid << " Exited (" << WEXITSTATUS(pstatus) << ") emacs\n";
+	      cout <<  pid << " Exited (" << WEXITSTATUS(pstatus) << ") " << args[0] << "\n";
 	    } //else if child exited
 	    else if (WIFSIGNALED(pstatus)){ ///if child process returns signal
 	      int sig = WTERMSIG(pstatus);
-	      cout << "\n" <<  pid << " Exited (" << strsignal(sig) << ") emacs\n";
+	      cout <<  pid << " Exited (" << strsignal(sig) << ") " << args[0] << "\n";
 	    } //else if child signaled 
 	    else if(WIFSTOPPED(pstatus)){
-	      cout << "\n" <<  pid << " Stopped ";
+	      cout <<  pid << " Stopped ";
 	      for(int n = 0; n < ev -> get_process_args(numProc); n++){
 		cout << ev -> get_process(numProc)[n] << " ";
 	      } //for
 	      cout << "\n";
 	    } //else if
 	    else if(WIFCONTINUED(pstatus)){
-	      cout << "\n" <<  pid << " Continued ";
+	      cout <<  pid << " Continued ";
 	      for(int n = 0; n < ev -> get_process_args(numProc); n++){
 		cout << ev -> get_process(numProc)[n] << " ";
 	      } //for
