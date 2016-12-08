@@ -1,0 +1,26 @@
+# Project 4
+
+Benjamin Rigsby (811-180-250)
+
+## Instructions
+
+To clean my code(remove any compiled files), type:
+$ make clean
+
+To compile my code, type:
+$ make compile
+
+To run my code(after compiling it), type the corresponding
+file you want to run:
+$ ./output
+
+## Reflection
+My partner and I worked in collaboration on this lab for our project.
+We were able to construct a class for parsing the user input and getting
+it ready to be used by the shell. We successfully can use our shell with
+a single pipe and without. Creating a child process with fork and then
+setting the signals appropriately was the big new part we worked on, and
+it all seems to be working well.
+We still need to do more work with job control, but we have background
+and foreground jobs working.
+Partner: Timothy Bartolo

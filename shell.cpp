@@ -100,8 +100,13 @@ int main(int argc, const char *argv[]){
     }else{
 
       int pipefd[2];
-      
+      int pipefd2[2];
+
       if(pipe(pipefd) == -1){
+	perror("pipe");
+      }//if
+
+      if(pipe(pipefd2) == -1){
 	perror("pipe");
       }//if
       
@@ -125,19 +130,32 @@ int main(int argc, const char *argv[]){
 	
 	  //if there is a pipe
 	  if(ev -> get_pipes() > 0){
-	    if(numProc == 0){//if this is the first process
-	      if(dup2(pipefd[1], STDOUT_FILENO) == -1){
-		perror("pipeout");
+	    if(numProc%2 == 0){//if this is the first process
+	      if(numProc != ev->get_pipes()){
+		if(dup2(pipefd[1], STDOUT_FILENO) == -1){
+		  perror("pipeout");
+		}//if
+	      }//if
+	      if(numProc != 0){
+		if(dup2(pipefd2[0], STDIN_FILENO) == -1){
+		  perror("pipein");
+		}//if
 	      }//if
 	    } //if
 	    else{//second process
 	      if(dup2(pipefd[0], STDIN_FILENO) == -1){
 		perror("pipein");
 	      }//if
+	      if(numProc < (ev->get_pipes())){
+		if(dup2(pipefd2[1], STDOUT_FILENO) == -1){
+		  perror("pipeout");
+		}//if
+	      }//if
 	    }//else
 	  }//if
 
-	  close_pipe(pipefd);//close pipe in child
+	  if(numProc != ev->get_pipes() || numProc%2 != 0) close_pipe(pipefd);//close pipe in child
+	  else close_pipe(pipefd2);
 	  
 	  if(numProc == 0 && (ev -> get_std_in()).compare("STDIN_FILENO") != 0){
 	    int filein = -1;
@@ -170,13 +188,19 @@ int main(int argc, const char *argv[]){
 	  
 	  args[ev->get_process_args(numProc)] = nullptr;
 	  execvp(args[0], args);
+	  exit(EXIT_FAILURE);
 	} //else if (child)
 	else{ //parent
 	  if(!(ev -> is_background())){
 	    if(numProc == ev -> get_pipes()){ //close pipe if last process
-	      close_pipe(pipefd);
+	      if(numProc%2 == 0) close_pipe(pipefd2);
+	      else close_pipe(pipefd);
+	    } else if(numProc == ev -> get_pipes()-1){
+	      if(numProc%2 == 0) close_pipe(pipefd2);
+	      else close_pipe(pipefd);
 	    }//if
 	    
+	    //wait(&pstatus);
 	    if((wpid = waitpid(pid, &pstatus, WUNTRACED | WCONTINUED | 0) == -1)){
 	      perror("waitpid");
 	    } //if
@@ -201,7 +225,9 @@ int main(int argc, const char *argv[]){
 	      } //for
 	      cout << "\n";
 	    } //else if 
+	    
 	  } //if (!is_background)
+
 	}//else
       }//for numProc
     } //else
